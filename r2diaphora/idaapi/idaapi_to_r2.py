@@ -339,6 +339,9 @@ def GetStructIdByName(x):
 def decompile(ea, decompiler_command = "pdg"):
     return log_exec_r2_cmd(f"{decompiler_command} @ {ea}")
 
+def disassemble(ea, disassembler_command = "pif"):
+    return log_exec_r2_cmd(f"{disassembler_command} @ {ea}")
+
 def calc_pseudo_hash(ea):
     primes_nums = primes(4096)
     primes_hash = 1
