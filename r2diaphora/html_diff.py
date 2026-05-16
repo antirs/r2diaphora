@@ -196,7 +196,7 @@ class HtmlResults():
                                     with tag("th"):
                                         with tag("i",
                                                 ("data-bs-toggle", "collapse"),
-                                                ("data-bs-taget", f"#diff-{i}"),
+                                                ("data-bs-target", f"#diff-{i}"),
                                                 klass="collapse-control",
                                                 href=f"#diff-{i}"):
                                             doc.stag("i", klass="bi bi-chevron-bar-expand")
