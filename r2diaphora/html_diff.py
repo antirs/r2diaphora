@@ -217,16 +217,23 @@ class HtmlResults():
                                         with tag("div", klass="accordion-body collapse", id=f"diff-{i}"):
                                             details1 = get_function_details(self.get_file_hash(self.file1), r["name"])
                                             pseudo1 = None
+                                            asm1 = None
                                             if details1 is None:
                                                 continue
                                             if details1["prototype"] and details1["pseudocode"]:
                                                 pseudo1 = details1["prototype"] + "\n" + details1["pseudocode"]
+                                            if details1["clean_assembly"]:
+                                                asm1 = details1["clean_assembly"]
+
                                             details2 = get_function_details(self.get_file_hash(self.file2), r["name2"])
                                             pseudo2 = None
+                                            asm2 = None
                                             if details2 is None:
                                                 continue
                                             if details2["prototype"] and details2["pseudocode"]:
                                                 pseudo2 = details2["prototype"] + "\n" + details2["pseudocode"]
+                                            if details2["clean_assembly"]:
+                                                asm2 = details2["clean_assembly"]
 
                                             changes = []
                                             if pseudo1 and pseudo2:
@@ -235,6 +242,14 @@ class HtmlResults():
                                                     [f"{l}\n" for l in pseudo2.split("\n")],
                                                 )
                                                 changes = [d for d in diff]
+
+                                            changes_asm = []
+                                            if asm1 and asm2:
+                                                diff_asm = DifflibParser(
+                                                    [f"{l}\n" for l in asm1.split("\n")],
+                                                    [f"{l}\n" for l in asm2.split("\n")],
+                                                )
+                                                changes_asm = [d for d in diff_asm]
 
                                             # Tabs
                                             with tag("nav", klass="nav nav-pills justify-content-center", style="margin-bottom: 20px;"):
