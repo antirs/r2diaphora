@@ -1170,8 +1170,15 @@ def main():
         )
 
         bd.open_db()
-        bd.diff(db2name)
-        matches = bd.get_results()
+        if not (args.addr1 and args.addr2):
+            bd.diff(db2name)
+            matches = bd.get_results()
+        else:
+            args.addr1 = int(args.addr1, 16)
+            args.addr2 = int(args.addr2, 16)
+            bd.find_compare(db2name, args.addr1, args.addr2)
+            matches = bd.get_results2()
+
         output_name = None
         if args.o:
             output_name = args.o
