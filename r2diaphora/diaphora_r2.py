@@ -392,15 +392,18 @@ class CIDABinDiff(diaphora.CBinDiff):
         kgh = CKoretKaramitasHash(get_r2())
         name, true_name = "", ""
         try:
-            name_info = log_exec_r2_cmdj(f"fd.j @ {f}")[0]
-            name = name_info.get("name")
-            true_name = name_info.get("realname")
-            demangled_name = name #r2.cmdj(f"isj. @ {f}").get("name", "")
+            names_info = log_exec_r2_cmdj(f"fd.j @ {f}")
+            for name_info in names_info:
+                name = name_info.get("name")
+                true_name = name_info.get("realname")
+                demangled_name = name #r2.cmdj(f"isj. @ {f}").get("name", "")
+                if name.startswith("section..") or name.startswith("sym.imp.") \
+                   or name.startswith("sym..text"):
+                    log.info("Skipping uninteresting function %s", name)
+                    continue
+                break
             #if demangled_name != "":
             #    name = demangled_name
-            if name.startswith("section..") or name.startswith("sym.imp."):
-                log.info("Skipping uninteresting function %s", name)
-                return False
 
         except Exception:
             log.error("Could not read function name for address %s", f)
