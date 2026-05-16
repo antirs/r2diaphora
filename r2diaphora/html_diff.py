@@ -296,7 +296,32 @@ class HtmlResults():
                                                                                     text("\n")
 
                                                     elif tab == "Assembly":
-                                                        pass
+                                                        if not asm1 or not asm2:
+                                                            cls += " disabled"
+                                                        with tag("div", klass=cls, id=f"diff-{i}-{tab.lower()}"):
+                                                            with tag("div", klass="row"):
+                                                                for side in [DiffCode.LEFTONLY, DiffCode.RIGHTONLY]:
+                                                                    cls = "col-md-6"
+                                                                    with tag("pre", klass=f"col-md-6 {tab.lower()}-tab"):
+                                                                        for change in changes_asm:
+                                                                            if change["code"] == DiffCode.SIMILAR:
+                                                                                with tag("span", klass="equal"):
+                                                                                    text(change["line"])
+                                                                            elif change["code"] == side:
+                                                                                with tag(
+                                                                                    "span",
+                                                                                    klass=f"{'deleted' if side == DiffCode.LEFTONLY else 'added'}"
+                                                                                ):
+                                                                                    text(change["line"])
+                                                                            elif change["code"] == DiffCode.CHANGED and side == DiffCode.LEFTONLY:
+                                                                                with tag("span", klass="deleted"):
+                                                                                    text(change["line"])
+                                                                            elif change["code"] == DiffCode.CHANGED and side == DiffCode.RIGHTONLY:
+                                                                                with tag("span", klass="added"):
+                                                                                    text(change["newline"])
+                                                                            else:
+                                                                                with tag("span", klass="blank"):
+                                                                                    text("\n")
 
                                                     elif tab == "Callgraph":
                                                         pass
