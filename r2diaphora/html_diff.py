@@ -238,7 +238,7 @@ class HtmlResults():
                                                     cls = "nav-link"
                                                     if j == 0:
                                                         cls += " active"
-                                                    with tag("a", ("data-toggle", "tab"), klass=cls, href=f"#diff-{i}-{tab.lower()}"):
+                                                    with tag("a", ("data-bs-toggle", "tab"), klass=cls, href=f"#diff-{i}-{tab.lower()}"):
                                                         text(tab)
                                             # Tabs content
                                             with tag("div", klass="tab-content"):
