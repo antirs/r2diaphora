@@ -102,13 +102,13 @@ class HtmlResults():
                 padding: 0 !important;
             }
 
-            .pseudocode-tab {
+            .pseudocode-tab, .assembly-tab {
                 position: relative;
                 border-radius: 20px;
                 margin-top: 30px;
             }
 
-            .pseudocode-tab > span {
+            .pseudocode-tab > span, .assembly-tab > span {
                 display: block;
                 width: 100%;
                 overflow: hidden;
