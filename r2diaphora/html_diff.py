@@ -217,10 +217,14 @@ class HtmlResults():
                                         with tag("div", klass="accordion-body collapse", id=f"diff-{i}"):
                                             details1 = get_function_details(self.get_file_hash(self.file1), r["name"])
                                             pseudo1 = None
+                                            if details1 is None:
+                                                continue
                                             if details1["prototype"] and details1["pseudocode"]:
                                                 pseudo1 = details1["prototype"] + "\n" + details1["pseudocode"]
                                             details2 = get_function_details(self.get_file_hash(self.file2), r["name2"])
                                             pseudo2 = None
+                                            if details2 is None:
+                                                continue
                                             if details2["prototype"] and details2["pseudocode"]:
                                                 pseudo2 = details2["prototype"] + "\n" + details2["pseudocode"]
 
