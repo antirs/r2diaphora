@@ -659,7 +659,8 @@ class CIDABinDiff(diaphora.CBinDiff):
             pseudocode_primes = str(self.pseudo_hash[f])
 
         try:
-            clean_assembly = self.get_cmp_asm_lines(asm)
+            # clean_assembly = self.get_cmp_asm_lines(asm)
+            clean_assembly = disassemble(f)
         except Exception:
             clean_assembly = ""
             log.error("Error getting assembly for 0x%x", f)
