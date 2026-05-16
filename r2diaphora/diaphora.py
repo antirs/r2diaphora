@@ -2163,6 +2163,39 @@ class CBinDiff:
 
         cur.close()
 
+    def find_compare(self, db, addr1, addr2):
+        last_diff_db = db
+
+        cur = self.db_cursor()
+
+        sql = f"""select distinct f.address ea1,
+                                        d.address ea2, f.name name1, d.name name2,
+                                        f.nodes bb1, d.nodes bb2
+                             from functions f,
+                                        `{last_diff_db}`.functions d
+                            where (f.address = %s
+                                  and d.address = %s)
+                                and f.name not like 'nullsub_%'"""
+
+        desc = "Compare functions"
+
+        cur.execute(sql, (addr1, addr2))
+        rows = cur.fetchall()
+        if len(rows) > 0:
+            choose = self.chooser("Compare functions", self, False)
+            for row in rows:
+                name1 = row["name1"]
+                name2 = row["name2"]
+                ea1 = row["ea1"]
+                ea2 = row["ea2"]
+                bb1 = row["bb1"]
+                bb2 = row["bb2"]
+                desc = "Compare functions"
+                choose.add_item(CChooser.Item(ea1, name1, ea2, name2, desc, 1.0, bb1, bb2))
+            self.compare_functions = choose
+
+        cur.close()
+
     def create_choosers(self):
         self.unreliable_chooser = self.chooser("Unreliable matches", self)
         self.partial_chooser = self.chooser("Partial matches", self)
@@ -2170,6 +2203,7 @@ class CBinDiff:
 
         self.unmatched_second = self.chooser("Unmatched in secondary", self, False)
         self.unmatched_primary = self.chooser("Unmatched in primary", self, False)
+        self.compare_functions = self.chooser("Compare functions", self, False)
 
     def result_tuple_to_dict(self, tuple):
         return {
@@ -2199,6 +2233,16 @@ class CBinDiff:
         for item in self.unreliable_chooser.items:
             m = self.result_tuple_to_dict(item)
             m["type"] = "unreliable"
+            matches.append(m)
+
+        return matches
+
+    def get_results2(self):
+        matches = []
+
+        for item in self.compare_functions.items:
+            m = self.result_tuple_to_dict(item)
+            m["type"] = "compare"
             matches.append(m)
 
         return matches
