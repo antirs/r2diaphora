@@ -2354,6 +2354,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("db1")
     parser.add_argument("db2")
+    parser.add_argument("addr1")
+    parser.add_argument("addr2")
     parser.add_argument("outfile")
     args = parser.parse_args()
     db1 = args.db1

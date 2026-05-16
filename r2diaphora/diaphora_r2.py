@@ -1074,6 +1074,18 @@ def main():
         help='(Optional) File to diff against'
     )
     parser.add_argument(
+        "addr1",
+        nargs="?",
+        default=None,
+        help='(Optional) Function address to analyze'
+    )
+    parser.add_argument(
+        "addr2",
+        nargs="?",
+        default=None,
+        help='(Optional) Function address to diff against'
+    )
+    parser.add_argument(
         "-f",
         dest='force_db_override',
         action='store_true',
