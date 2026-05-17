@@ -1109,7 +1109,7 @@ def main():
         "-d",
         "--decompiler",
         default="ghidra",
-        choices=["pdc", "ghidra"],
+        choices=["pdc", "pdd", "ghidra"],
         help="Which decompiler to use"
     )
 
@@ -1138,7 +1138,8 @@ def main():
     args.file1 = args.file1[0]
     decompiler_commands = {
         "ghidra": "pdg",
-        "pdc": "pdc"
+        "pdc": "pdc",
+        "pdd": "pdd"
     }
 
     g_bindiff_opts["decompiler_command"] = decompiler_commands.get(args.decompiler)
