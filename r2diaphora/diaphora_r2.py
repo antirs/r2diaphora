@@ -741,7 +741,7 @@ class CIDABinDiff(diaphora.CBinDiff):
             # Flags have an offset value, but this value is not the same for 
             # switch flags and their cases
             sw_ref = sw["name"].split(".")[1].lstrip("0x").lstrip("0")
-            if not test_addr_within_function(function_ea, sw["offset"]):
+            if not test_addr_within_function(function_ea, sw["addr"]):
                 continue
 
             cases = [f for f in flags if f["name"].startswith(f"case.0x{sw_ref}.")]

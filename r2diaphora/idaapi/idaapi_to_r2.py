@@ -182,7 +182,7 @@ def test_addr_within_function(f, ea):
     if not fn:
         return False
 
-    return ea >= fn["offset"] and ea <= (fn["offset"] + fn["size"])
+    return ea >= fn["addr"] and ea <= (fn["addr"] + fn["size"])
 
 #-----------------------------------------------------------------------
 def get_arch():
@@ -489,7 +489,7 @@ def get_func(ea):
     #     return None
 
     # afi is slow, this method is faster, even it does not look like it
-    return next(filter(lambda fn: fn["offset"] == ea, get_all_fns()), {})
+    return next(filter(lambda fn: fn["addr"] == ea, get_all_fns()), {})
 
 #-----------------------------------------------------------------------
 def GetInstructionList():
@@ -626,14 +626,14 @@ def Functions(filter_lambda=None):
     if filter_lambda:
         fcns = list(filter(filter_lambda, fcns))
 
-    return [str(fcn["offset"]) for fcn in fcns]
+    return [str(fcn["addr"]) for fcn in fcns]
 
 #-----------------------------------------------------------------------
 def Names():
     # Return a dictionary with {address: nameofthing}
     res = {}
     for flag in log_exec_r2_cmdj("fj"):
-        res[flag["offset"]] = flag["name"]
+        res[flag["addr"]] = flag["name"]
     return res
 
 #-----------------------------------------------------------------------
