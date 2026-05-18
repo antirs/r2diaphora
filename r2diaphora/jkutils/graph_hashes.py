@@ -23,6 +23,7 @@ try:
 except ImportError:
   from r2diaphora.tarjan_sort import strongly_connected_components
 
+#-------------------------------------------------------------------------------
 log = logging.getLogger("diaphora.graph_hashes")
 
 #-------------------------------------------------------------------------------
