@@ -3,7 +3,6 @@ import difflib
 from yattag import Doc
 from hashlib import sha256
 
-from r2diaphora import get_function_details
 from .difflibparser import DifflibParser, DiffCode
 
 class HtmlResults():
@@ -18,11 +17,18 @@ class HtmlResults():
         "bb2": "BB2"
     }
 
-    def __init__(self, results, file1 = None, file2 = None):
+    def __init__(self, db, results, file1 = None, file2 = None):
+        self.db = db.db
         self.results = results
         self.file1 = file1
         self.file2 = file2
         self.hashes = {}
+
+    def get_function_details(self, db_name, fname):
+        cur = self.db.cursor()
+        cur.execute(f"SELECT * FROM {db_name}.functions WHERE name = ?", (fname, ))
+        details = cur.fetchone()
+        return details
 
     def get_file_hash(self, file):
         if file in self.hashes:
@@ -215,7 +221,7 @@ class HtmlResults():
                                 with tag("tr", klass="nohover"):
                                     with tag("td", colspan=12, klass="hidden-row"):
                                         with tag("div", klass="accordion-body collapse", id=f"diff-{i}"):
-                                            details1 = get_function_details(self.get_file_hash(self.file1), r["name"])
+                                            details1 = self.get_function_details("main", r["name"])
                                             pseudo1 = None
                                             asm1 = None
                                             if details1 is None:
@@ -225,7 +231,7 @@ class HtmlResults():
                                             if details1["clean_assembly"]:
                                                 asm1 = details1["clean_assembly"]
 
-                                            details2 = get_function_details(self.get_file_hash(self.file2), r["name2"])
+                                            details2 = self.get_function_details("diff", r["name2"])
                                             pseudo2 = None
                                             asm2 = None
                                             if details2 is None:
