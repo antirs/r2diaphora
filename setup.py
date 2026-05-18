@@ -45,6 +45,7 @@ setup(
     license="GNU GPL v3",
     packages=[
         "r2diaphora",
+        "r2diaphora.db_support",
         "r2diaphora.idaapi",
         "r2diaphora.jkutils",
         "r2diaphora.ml",
