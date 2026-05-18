@@ -86,7 +86,6 @@ class CIDABinDiff(diaphora.CBinDiff):
         cpu_ins_list.sort()
 
         self.db.commit()
-        self.db.start_transaction()
 
         log.debug("FUNC LISTING IS %s", func_list)
         for i, func in enumerate(func_list, start = 1):
@@ -121,7 +120,6 @@ class CIDABinDiff(diaphora.CBinDiff):
             # doing a commit every 10 functions, as before, is overkill.
             if total_funcs > 1000 and i % (total_funcs/1000) == 0:
                 self.db.commit()
-                self.db.start_transaction()
 
             # Timeout control
             if self.timeout and elapsed > self.timeout:
@@ -131,7 +129,6 @@ class CIDABinDiff(diaphora.CBinDiff):
                 break
 
         self.db.commit()
-        self.db.start_transaction()
 
         md5sum = GetInputFileMD5()
         self.save_callgraph(str(callgraph_primes), json.dumps(callgraph_all_primes), md5sum)
@@ -411,6 +408,8 @@ class CIDABinDiff(diaphora.CBinDiff):
         # WTF
         f = int(f)
 
+        export_time = time.monotonic()
+
         fninfo = get_func(f)
         log.debug("fninfo: %s", fninfo)
         flow = log_exec_r2_cmdj(f"afbj @ {f}")
@@ -545,8 +544,11 @@ class CIDABinDiff(diaphora.CBinDiff):
 
                 ins_cmt1 = GetCommentEx(x, 0)
                 ins_cmt2 = GetCommentEx(x, 1)
+
+                tmp_operands = []
+
                 instructions_data.append(
-                    [x - image_base, mnem, disasm, ins_cmt1, ins_cmt2, tmp_name, tmp_type]
+                    [x - image_base, mnem, disasm, ins_cmt1, ins_cmt2, tmp_name, tmp_operands, tmp_type]
                 )
             # End for x in block["instr"]
 
@@ -665,6 +667,9 @@ class CIDABinDiff(diaphora.CBinDiff):
             clean_assembly = ""
             log.error("Error getting assembly for 0x%x", f)
 
+        microcode, clean_microcode, microcode_spp = None, None, None
+        microcode_bblocks, microcode_bbrelations = [], []
+
         clean_pseudo = self.get_cmp_pseudo_lines(pseudo)
 
         md_index = 0
@@ -701,15 +706,67 @@ class CIDABinDiff(diaphora.CBinDiff):
             log.error("Could not convert kgh_hash with value %d into string", kgh_hash)
             kgh_hash = "0"
 
-        return (name, nodes, edges, indegree, outdegree, size, instructions, mnems, names,
-                         proto, cc, prime, f, comment, true_name, bytes_hash, pseudo, pseudo_lines,
-                         pseudo_hash1, pseudocode_primes, function_flags, asm, proto2,
-                         pseudo_hash2, pseudo_hash3, len(strongly_connected), loops, rva, bb_topological,
-                         strongly_connected_spp, clean_assembly, clean_pseudo, mnemonics_spp, switches,
-                         function_hash, bytes_sum, md_index, constants, len(constants), seg_rva,
-                         assembly_addrs, kgh_hash, None,
-                         callers, callees,
-                         basic_blocks_data, bb_relations)
+        export_time = time.monotonic() - export_time
+        export_time = str(export_time)
+
+        props_list = (
+            name,
+            nodes,
+            edges,
+            indegree,
+            outdegree,
+            size,
+            instructions,
+            mnems,
+            names,
+            proto,
+            cc,
+            prime,
+            f,
+            comment,
+            true_name,
+            bytes_hash,
+            pseudo,
+            pseudo_lines,
+            pseudo_hash1,
+            pseudocode_primes,
+            function_flags,
+            asm,
+            proto2,
+            pseudo_hash2,
+            pseudo_hash3,
+            len(strongly_connected),
+            loops,
+            rva,
+            bb_topological,
+            strongly_connected_spp,
+            clean_assembly,
+            clean_pseudo,
+            mnemonics_spp,
+            switches,
+            function_hash,
+            bytes_sum,
+            md_index,
+            constants,
+            len(constants),
+            seg_rva,
+            assembly_addrs,
+            kgh_hash,
+            None,
+            None,
+            microcode,
+            clean_microcode,
+            microcode_spp,
+            export_time,
+            microcode_bblocks,
+            microcode_bbrelations,
+            callers,
+            callees,
+            basic_blocks_data,
+            bb_relations,
+        )
+
+        return props_list
 
     def build_asm_corpus(self, assembly, f, image_base):
         asm = []
@@ -780,7 +837,9 @@ class CIDABinDiff(diaphora.CBinDiff):
         pseudo_hash2, pseudo_hash3, strongly_connected_size, loops, rva, bb_topological,
         strongly_connected_spp, clean_assembly, clean_pseudo, mnemonics_spp, switches,
         function_hash, bytes_sum, md_index, constants, constants_size, seg_rva,
-        assembly_addrs, kgh_hash, userdata, callers, callees, basic_blocks_data,
+        assembly_addrs, kgh_hash, source_file, userdata, microcode, clean_microcode,
+        microcode_spp, export_time, microcode_bblocks, microcode_bbrelations,
+        callers, callees, basic_blocks_data,
         bb_relations) = l
         d = dict(
                 name = name,
@@ -837,7 +896,7 @@ class CIDABinDiff(diaphora.CBinDiff):
 
     def save_callgraph(self, primes, all_primes, md5sum):
         cur = self.db_cursor()
-        sql = f"insert into `{self.db_name}`.program (callgraph_primes, callgraph_all_primes, processor, md5sum) values (%s, %s, %s, %s)"
+        sql = f"insert into main.program (callgraph_primes, callgraph_all_primes, processor, md5sum) values (?, ?, ?, ?)"
         proc = r2_get_idp_name()
         if BADADDR == 0xFFFFFFFFFFFFFFFF:
             proc += "64"
@@ -955,7 +1014,7 @@ def _diff_or_export(function_filter = None, dbname = None, userdata = "", **opti
         bd.ignore_all_names = opts.ignore_all_names
         bd.ignore_small_functions = opts.ignore_small_functions
         bd.function_summaries_only = opts.func_summaries_only
-        bd.max_processed_rows = diaphora.MAX_PROCESSED_ROWS * max(total_functions / 20000, 1)
+        bd.max_processed_rows = diaphora.config.SQL_MAX_PROCESSED_ROWS * max(total_functions / 20000, 1)
         bd.timeout = options.get("timeout")
         bd.open_db()
         bd.export(function_filter, userdata)
@@ -1051,6 +1110,8 @@ def compare_dbs(db1name, db2name):
     bd.diff(db2name)
     return bd.get_results()
 
+
+#-------------------------------------------------------------------------------
 def main():
     import argparse
     if os.getenv("MODE") == "DEBUG":
@@ -1185,7 +1246,7 @@ def main():
             output_name = args.o
         else:
             output_name = f"{db1name[0:10]}_vs_{db2name[0:10]}.html"
-        r2diaphora.HtmlResults(matches, file1=args.file1, file2=args.file2).render(output_name)
+        r2diaphora.HtmlResults(bd, matches, file1=args.file1, file2=args.file2).render(output_name)
         print(f"[+] Diff saved to {output_name}")
 
 if __name__ == "__main__":
