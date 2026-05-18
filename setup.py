@@ -47,6 +47,7 @@ setup(
         "r2diaphora",
         "r2diaphora.idaapi",
         "r2diaphora.jkutils",
+        "r2diaphora.ml",
         "r2diaphora.others",
     ],
     install_requires=[
