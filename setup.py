@@ -1,5 +1,6 @@
 import os
-from distutils.dir_util import copy_tree
+from distutils.dir_util import copy_tree, mkpath
+from distutils.file_util import copy_file
 
 from setuptools import setup
 from setuptools.command.install import install
@@ -34,6 +35,13 @@ class CustomInstall(install):
                     dir_path,
                     os.path.join(os.path.expanduser("~"), ".r2diaphora", "signatures", "flirt", d)
                 )
+        ml_src_file = "diaphora-amalgamation-model.pkl"
+        ml_src_model = os.path.join(dirname, "r2diaphora", "ml", ml_src_file)
+        ml_dst_model = os.path.join(os.path.expanduser("~"), ".r2diaphora", "ml")
+        ml_dst_dir = os.path.join(os.path.expanduser("~"), ".r2diaphora", "ml")
+        if not os.path.exists(os.path.join(os.path.expanduser("~"), ".r2diaphora", "ml", ml_src_file)):
+            mkpath(ml_dst_dir)
+            copy_file(ml_src_model, ml_dst_dir)
 
 setup(
     name="r2diaphora",

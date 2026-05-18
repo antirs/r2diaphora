@@ -11,6 +11,7 @@ import os
 
 CONFIGURATION_FILE_PATH = os.path.realpath(__file__)
 CONFIGURATION_DIRECTORY = os.path.dirname(CONFIGURATION_FILE_PATH)
+USER_CONFIGURATION_DIRECTORY = os.path.join(os.path.expanduser("~"), ".r2diaphora")
 
 ################################################################################
 # Default colors related options
@@ -204,7 +205,8 @@ THREADS_WAIT_TIME = 1
 # Diaphora can use a local mode, enable this configuration directive to use it.
 ML_USE_TRAINED_MODEL = True
 # Model trained with a decision tree classifier: fast and accurate enough
-ML_TRAINED_MODEL = os.path.join(CONFIGURATION_DIRECTORY, "ml/diaphora-amalgamation-model.pkl")
+ML_TRAINED_MODEL = os.path.join(USER_CONFIGURATION_DIRECTORY, "ml/diaphora-amalgamation-model.pkl")
+
 # The value added to the similarity ratio for a positive match using the model.
 ML_TRAINED_MODEL_MATCH_SCORE = 0.15
 
