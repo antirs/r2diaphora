@@ -187,7 +187,7 @@ DIFFING_MATCHES_MIN_BBLOCKS = 3
 RUN_DEFAULT_SCRIPTS = True
 
 # Where is the default patch diffing script?
-DEFAULT_SCRIPT_PATCH_DIFF = os.path.join(CONFIGURATION_DIRECTORY, "scripts/patch_diff_vulns.py")
+DEFAULT_SCRIPT_PATCH_DIFF = os.path.join(USER_CONFIGURATION_DIRECTORY, "scripts/patch_diff_vulns.py")
 
 # When finding new matches in (potential) compilation units by diffing previous
 # results, which is the minimum similarity ratio that we must get in order to

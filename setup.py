@@ -43,6 +43,10 @@ class CustomInstall(install):
             mkpath(ml_dst_dir)
             copy_file(ml_src_model, ml_dst_dir)
 
+        patch_diffing_script = os.path.join(dirname, "scripts", "patch_diff_vulns.py")
+        scripts_dst_dir = os.path.join(os.path.expanduser("~"), ".r2diaphora", "scripts")
+        mkpath(scripts_dst_dir)
+        copy_file(patch_diffing_script, scripts_dst_dir)
 setup(
     name="r2diaphora",
     version="0.3.2",
