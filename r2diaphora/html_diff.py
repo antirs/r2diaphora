@@ -160,11 +160,11 @@ class HtmlResults():
 
         with tag("html"):
             with tag("head"):
-                doc.stag("link", rel="stylesheet", href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.2/dist/css/bootstrap.min.css")
-                doc.stag("link", rel="stylesheet", href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css")
-                with tag("script", src="https://code.jquery.com/jquery-3.6.0.slim.min.js"):
+                doc.stag("link", rel="stylesheet", href="/vendor/cdn.jsdelivr.net/npm/bootstrap@5.1.2/dist/css/bootstrap.min.css", integrity="sha256-vVWLaw+oJWUE1vF5YgPFXFQAE9fUAh95JBR286xJ2sE=", crossorigin="anonymous")
+                doc.stag("link", rel="stylesheet", href="/vendor/cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css", integrity="sha256-zNC3EDmzZMu2Ztg+UaWduYUJGyODdlTcI0f03cVJE3g=", crossorigin="anonymous")
+                with tag("script", src="/vendor/code.jquery.com/jquery-3.6.0.slim.min.js", integrity="sha256-u7e5khyithlIdTpu22PHhENmPcRdFiHRjhAuHcs05RI=", crossorigin="anonymous"):
                     pass
-                with tag("script", src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.2/dist/js/bootstrap.bundle.min.js"):
+                with tag("script", src="/vendor/cdn.jsdelivr.net/npm/bootstrap@5.1.2/dist/js/bootstrap.bundle.min.js", integrity="sha256-yLNEzLfmPRjvQiv9dxo0i/ujKk2HKd8c6/kc7TlyjZQ=", crossorigin="anonymous"):
                     pass
 
             with tag("body", style="margin: 50px; background-color: #303538; color: white;"):
