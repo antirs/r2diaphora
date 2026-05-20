@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 
 __all__ = ["get_model_comparison_data", "ML_AVAILABLE"]
 
@@ -24,7 +24,7 @@ except ImportError:
     DataFrame = None
 
   if config.SHOW_IMPORT_WARNINGS:
-    print("WARNING: sklearn, numpy and joblib python libraries are required to use ML models.")
+    print("WARNING: scikit-learn, numpy, joblib and pandas python libraries are required to use ML models.")
     print("INFO: Alternatively, you can silence this warning by changing the value of SHOW_IMPORT_WARNINGS in diaphora_config.py.")
   ML_AVAILABLE = False
 

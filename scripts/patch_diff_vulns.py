@@ -13,8 +13,6 @@ from difflib import unified_diff
 from r2diaphora.diaphora import CChooser, log
 
 #-------------------------------------------------------------------------------
-# pylint: disable=unused-argument
-# pylint: disable=missing-function-docstring
 
 #-------------------------------------------------------------------------------
 PATTERNS = [

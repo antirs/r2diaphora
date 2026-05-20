@@ -2,7 +2,7 @@
 
 """
 Diaphora, a binary diffing tool
-Copyright (c) 2015-2024, Joxean Koret
+Copyright (c) 2015-2026 Joxean Koret
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as
@@ -80,14 +80,13 @@ from r2diaphora.jkutils.factor import (
 )
 
 try:
-  # pylint: disable-next=unused-import
   import idaapi
 
   IS_IDA = True
 except ImportError:
   IS_IDA = False
 
-# importlib.reload(ml.basic_engine)
+importlib.reload(r2diaphora.ml.basic_engine)
 importlib.reload(config)
 importlib.reload(schema)
 importlib.reload(jk_threads)
@@ -98,8 +97,8 @@ if hasattr(sys, "set_int_max_str_digits"):
   sys.set_int_max_str_digits(0)
 
 #-------------------------------------------------------------------------------
-VERSION_VALUE = "3.2.1"
-COPYRIGHT_VALUE = "Copyright(c) 2015-2024 Joxean Koret"
+VERSION_VALUE = "3.4"
+COPYRIGHT_VALUE = "Copyright(c) 2015-2026 Joxean Koret"
 
 ITEM_MAIN_EA = 0
 ITEM_MAIN_NAME = 1
@@ -139,6 +138,7 @@ def result_iter(cursor, arraysize=1000):
       break
     for result in results:
       yield result
+
 
 #-------------------------------------------------------------------------------
 def quick_ratio(buf1, buf2):
@@ -181,12 +181,10 @@ def log(message):
   """
   Print a message
   """
-  # pylint: disable=protected-access
   if IS_IDA or os.getenv("DIAPHORA_LOG_PRINT") is not None:
     print(f"[Diaphora: {time.asctime()}] {message}")
   else:
     logging.info(message)
-  # pylint: enable=protected-access
 
 
 #-------------------------------------------------------------------------------
@@ -300,7 +298,6 @@ def drop_all():
   db.close()
 
 #-------------------------------------------------------------------------------
-# pylint: disable=consider-using-f-string
 class CChooser:
   """
   Our own chooser for displaying diffing results.
@@ -389,9 +386,6 @@ class CChooser:
     """
 
 
-# pylint: enable=consider-using-f-string
-
-
 #-------------------------------------------------------------------------------
 class CBytesEncoder(json.JSONEncoder):
   """
@@ -405,8 +399,6 @@ class CBytesEncoder(json.JSONEncoder):
 
 
 #-------------------------------------------------------------------------------
-# pylint: disable=used-before-assignment
-# pylint: disable=global-variable-not-assigned
 
 if "_DATABASES" not in globals():
   _DATABASES = {}
@@ -431,15 +423,27 @@ def sqlite3_connect(db_name):
   return db
 
 
-# pylint: enable=global-variable-not-assigned
-# pylint: enable=used-before-assignment
-
-
 #-------------------------------------------------------------------------------
 class CBinDiff:
   """
   The main binary diffing class.
   """
+
+  FUNCTION_FIELDS = (
+    "name", "nodes", "edges", "indegree", "outdegree", "size",
+    "instructions", "mnems", "names", "proto", "cc", "prime", "f",
+    "comment", "true_name", "bytes_hash", "pseudo", "pseudo_lines",
+    "pseudo_hash1", "pseudocode_primes", "function_flags", "asm",
+    "proto2", "pseudo_hash2", "pseudo_hash3", "strongly_connected_size",
+    "loops", "rva", "bb_topological", "strongly_connected_spp",
+    "clean_assembly", "clean_pseudo", "mnemonics_spp", "switches",
+    "function_hash", "bytes_sum", "md_index", "constants",
+    "constants_size", "seg_rva", "assembly_addrs", "kgh_hash",
+    "source_file", "userdata", "microcode", "clean_microcode",
+    "microcode_spp", "export_time", "microcode_bblocks",
+    "microcode_bbrelations", "callers", "callees", "basic_blocks_data",
+    "bb_relations",
+  )
 
   def __init__(self, db_name, chooser=CChooser):
     self.names = dict()
@@ -587,6 +591,14 @@ class CBinDiff:
     Fake member, it is only useful (and implemented) when running from within IDA.
     """
 
+  def imp_load_source(self, name, pathname):
+    """ Replacement for imp.load_source() """
+    spec = importlib.util.spec_from_file_location(modname, filename)
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[modname] = module
+    spec.loader.exec_module(module)
+    return module
+
   def load_hooks(self):
     """
     Load the project specific python script, if any was set.
@@ -596,7 +608,7 @@ class CBinDiff:
 
     try:
       log(f"Loading project specific Python script {self.project_script}")
-      module = load_source("diaphora_hooks", self.project_script)
+      module = self.imp_load_source("diaphora_hooks", self.project_script)
     except:
       err = str(sys.exc_info()[1])
       print(f"Error loading project specific Python script: {err}")
@@ -630,7 +642,6 @@ class CBinDiff:
       return value
     return default
 
-  # pylint: disable=protected-access
   def open_db(self):
     """
     Open the database @self.db_name.
@@ -643,7 +654,6 @@ class CBinDiff:
       self.db = db
       self.create_schema()
 
-  # pylint: enable=protected-access
 
   def get_db(self):
     """
@@ -664,7 +674,6 @@ class CBinDiff:
     db = self.get_db()
     return db.cursor()
 
-  # pylint: disable=protected-access
   def db_close(self):
     """
     Close the main database.
@@ -676,7 +685,6 @@ class CBinDiff:
     if isinstance(threading.current_thread(), threading._MainThread):
       self.db.close()
 
-  # pylint: enable=protected-access
 
   def create_schema(self):
     """
@@ -954,186 +962,14 @@ class CBinDiff:
     cur.executemany(sql_bbrelations, insert_args)
 
   def get_function_from_dictionary(self, d):
+    """ Get a tuple ready to be used to insert rows from a given dictionary.
     """
-    Get a list ready to be used to insert rows from a given dictionary.
-    """
-    list_dict = (
-      d["name"],
-      d["nodes"],
-      d["edges"],
-      d["indegree"],
-      d["outdegree"],
-      d["size"],
-      d["instructions"],
-      d["mnems"],
-      d["names"],
-      d["proto"],
-      d["cc"],
-      d["prime"],
-      d["f"],
-      d["comment"],
-      d["true_name"],
-      d["bytes_hash"],
-      d["pseudo"],
-      d["pseudo_lines"],
-      d["pseudo_hash1"],
-      d["pseudocode_primes"],
-      d["function_flags"],
-      d["asm"],
-      d["proto2"],
-      d["pseudo_hash2"],
-      d["pseudo_hash3"],
-      d["strongly_connected_size"],
-      d["loops"],
-      d["rva"],
-      d["bb_topological"],
-      d["strongly_connected_spp"],
-      d["clean_assembly"],
-      d["clean_pseudo"],
-      d["mnemonics_spp"],
-      d["switches"],
-      d["function_hash"],
-      d["bytes_sum"],
-      d["md_index"],
-      d["constants"],
-      d["constants_size"],
-      d["seg_rva"],
-      d["assembly_addrs"],
-      d["kgh_hash"],
-      d["source_file"],
-      d["userdata"],
-      d["microcode"],
-      d["clean_microcode"],
-      d["microcode_spp"],
-      d["microcode_bblocks"],
-      d["microcode_bbrelations"],
-      d["export_time"],
-      d["callers"],
-      d["callees"],
-      d["basic_blocks_data"],
-      d["bb_relations"],
-    )
-    return list_dict
+    return tuple(d[k] for k in self.FUNCTION_FIELDS)
 
-  # pylint: disable=redefined-outer-name
-  def create_function_dictionary(self, list_dict):
+  def create_function_dictionary(self, props):
+    """ Create a dictionary to be used with project specific hooks from a given tuple.
     """
-    Create a dictionary to be used with project specific hooks from a given list.
-    """
-    (
-      name,
-      nodes,
-      edges,
-      indegree,
-      outdegree,
-      size,
-      instructions,
-      mnems,
-      names,
-      proto,
-      cc,
-      prime,
-      f,
-      comment,
-      true_name,
-      bytes_hash,
-      pseudo,
-      pseudo_lines,
-      pseudo_hash1,
-      pseudocode_primes,
-      function_flags,
-      asm,
-      proto2,
-      pseudo_hash2,
-      pseudo_hash3,
-      strongly_connected_size,
-      loops,
-      rva,
-      bb_topological,
-      strongly_connected_spp,
-      clean_assembly,
-      clean_pseudo,
-      mnemonics_spp,
-      switches,
-      function_hash,
-      bytes_sum,
-      md_index,
-      constants,
-      constants_size,
-      seg_rva,
-      assembly_addrs,
-      kgh_hash,
-      source_file,
-      userdata,
-      microcode,
-      clean_microcode,
-      microcode_spp,
-      export_time,
-      microcode_bblocks,
-      microcode_bbrelations,
-      callers,
-      callees,
-      basic_blocks_data,
-      bb_relations,
-    ) = list_dict
-    d = dict(
-      name=name,
-      nodes=nodes,
-      edges=edges,
-      indegree=indegree,
-      outdegree=outdegree,
-      size=size,
-      instructions=instructions,
-      mnems=mnems,
-      names=names,
-      proto=proto,
-      cc=cc,
-      prime=prime,
-      f=f,
-      comment=comment,
-      true_name=true_name,
-      bytes_hash=bytes_hash,
-      pseudo=pseudo,
-      pseudo_lines=pseudo_lines,
-      pseudo_hash1=pseudo_hash1,
-      pseudocode_primes=pseudocode_primes,
-      function_flags=function_flags,
-      asm=asm,
-      proto2=proto2,
-      pseudo_hash2=pseudo_hash2,
-      pseudo_hash3=pseudo_hash3,
-      strongly_connected_size=strongly_connected_size,
-      loops=loops,
-      rva=rva,
-      bb_topological=bb_topological,
-      strongly_connected_spp=strongly_connected_spp,
-      clean_assembly=clean_assembly,
-      clean_pseudo=clean_pseudo,
-      mnemonics_spp=mnemonics_spp,
-      switches=switches,
-      function_hash=function_hash,
-      bytes_sum=bytes_sum,
-      md_index=md_index,
-      constants=constants,
-      constants_size=constants_size,
-      seg_rva=seg_rva,
-      assembly_addrs=assembly_addrs,
-      kgh_hash=kgh_hash,
-      source_file=source_file,
-      callers=callers,
-      callees=callees,
-      basic_blocks_data=basic_blocks_data,
-      bb_relations=bb_relations,
-      microcode=microcode,
-      clean_microcode=clean_microcode,
-      microcode_bblocks=microcode_bblocks,
-      microcode_bbrelations=microcode_bbrelations,
-      microcode_spp=microcode_spp,
-      export_time=export_time,
-      userdata=userdata,
-    )
-    return d
-  # pylint: enable=redefined-outer-name
+    return dict(zip(self.FUNCTION_FIELDS, props))
 
   def save_function_to_database(self, props, cur, func_id):
     """
@@ -1869,7 +1705,6 @@ class CBinDiff:
     percent = (total * 100) / self.total_functions1
     log(f"Current results: Best {best}, Partial {partial}, Unreliable {unreliable}")
 
-    # pylint: disable-next=consider-using-f-string
     message = "Matched %1.2f%% of main binary functions (%d out of %d)" % (percent, total, self.total_functions1)
     log(message)
 
@@ -1912,7 +1747,6 @@ class CBinDiff:
     md2 = float(md2)
 
     fratio = quick_ratio
-    # pylint: disable-next=consider-using-f-string
     decimal_values = "{0:.%s}" % config.DECIMAL_VALUES
     if self.relaxed_ratio:
       fratio = real_quick_ratio
@@ -2096,7 +1930,6 @@ class CBinDiff:
         if ratio is None:
           r = self.check_ratio(main_d, diff_d)
           if debug:
-            # pylint: disable-next=consider-using-f-string
             msg = "0x%x 0x%x %d" % (int(ea), int(ea2), r)
             logging.debug(msg)
         else:
@@ -2175,7 +2008,6 @@ class CBinDiff:
         done = False
 
       if done:
-        # pylint: disable-next=consider-using-f-string
         matches.append([0, "0x%x" % int(ea), name1, ea2, name2])
         self.add_match(name1, name2, r, item, chooser)
       else:
@@ -2184,7 +2016,6 @@ class CBinDiff:
         if r < config.DEFAULT_PARTIAL_RATIO and r > val and unreliable is not None:
           chooser = "unreliable"
           item = [ea, name1, ea2, name2, desc, r, nodes1, nodes2]
-          # pylint: disable-next=consider-using-f-string
           matches.append([0, "0x%x" % int(ea), name1, ea2, name2])
 
         if chooser is not None:
@@ -4013,7 +3844,6 @@ class CBinDiff:
           f"Final results: Best {best}, Partial {partial}, Unreliable {unreliable}, Multimatches {multi}"
         )
 
-        # pylint: disable-next=consider-using-f-string
         message = "Matched %1.2f%% of main binary functions (%d out of %d)" % (percent, total, self.total_functions1)
         log(message)
 
@@ -4058,7 +3888,6 @@ if __name__ == "__main__":
     with open(script, "rb") as f:
       buf = f.read()
 
-    # pylint: disable-next=exec-used
     exec(compile(buf, script, "exec"))
     do_diff = False
   else:
