@@ -292,7 +292,10 @@ class CIDABinDiff(diaphora.CBinDiff):
         self.pseudo_hash[ea] = 1
         if self.rebuild_ast:
             try:
-                self.pseudo_hash[ea] = calc_pseudo_hash(ea)
+                # TODO: add pdd, pdc support to calc_pseudo_hash
+                # TODO: reflect changes in pdgx output in calc_pseudo_hash
+                pass
+                # self.pseudo_hash[ea] = calc_pseudo_hash(ea)
             except Exception:
                 log.exception(
                     "Exception while calculating pseudocode primes hash for function 0x%x",
